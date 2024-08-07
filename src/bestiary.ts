@@ -44,7 +44,13 @@ export async function buildBestiaryTree(): Promise<MonsterTitlesByCategory> {
   let currentCategory = '';
 
   for (const row of rows) {
-    if (!row || row.startsWith('{{') || row.startsWith('}}')) {
+    if (
+      !row ||
+      row.startsWith('{{') ||
+      row.startsWith('}}') ||
+      row.startsWith('[[Catégorie:') ||
+      row.startsWith('[[en:')
+    ) {
       continue;
     }
 
@@ -70,7 +76,7 @@ export async function buildBestiaryTree(): Promise<MonsterTitlesByCategory> {
 export async function getMonsterContent(monsterTitle: string, category: string): Promise<Monster> {
   const monsterText = await getMonsterFromContent(monsterTitle);
 
-  const mSpec: Partial<Monster> & Record<string, string | number | string[]> = { category };
+  const mSpec: Partial<Monster> & Record<string, string | number | string[]> = { fandomTitle: monsterTitle, category };
   let mode = '';
   mSpec.stats = {};
   mSpec.waeknesses = {};
@@ -88,7 +94,7 @@ export async function getMonsterContent(monsterTitle: string, category: string):
       let [key, value] = line.replace('| ', '').split('=');
       if (key && value) {
         key = normalizeText(key);
-        value = value.replaceAll('[[', '').replaceAll(']]', '').replaceAll('<br/> ', '');
+        value = value.replaceAll('[[', '').replaceAll(']]', '').replaceAll(' <br/>', '').trim();
         if (STATS_KEYS[key]) {
           mSpec.stats[key] = parseInt(value.replaceAll(' ', ''), 10);
         } else if (RESISTANCES_WEAKNESSES[key]) {
@@ -104,9 +110,33 @@ export async function getMonsterContent(monsterTitle: string, category: string):
     }
   }
 
-  console.log('mSpec ->', mSpec);
   mSpec.image = await getMonsterImage(monsterTitle);
   return new Monster(mSpec);
+}
+
+export class Monsters {
+  monsters: Monster[];
+
+  constructor(monsters: Partial<Monster>[] = []) {
+    this.monsters = monsters.map((monster) => (monster instanceof Monster ? monster : new Monster(monster)));
+  }
+
+  add(monster: Monster): void {
+    if (this.names.includes(monster.fandomTitle)) {
+      console.log(`Monster ${monster.fandomTitle} already exists in the list`);
+      return;
+    }
+
+    this.monsters.push(monster);
+  }
+
+  export() {
+    return this.monsters.map((monster) => monster.export());
+  }
+
+  get names() {
+    return this.monsters.map((monster) => monster.fandomTitle);
+  }
 }
 
 class Monster {
@@ -129,6 +159,7 @@ class Monster {
   overdrive_kimahri_: string;
   resistant_a: string;
   immunise_contre: string;
+  fandomTitle: string;
 
   constructor(spec: Partial<Monster>) {
     this.nom = spec.nom ?? '';
@@ -136,6 +167,7 @@ class Monster {
     this.nomjap = spec.nomjap ?? '';
     this.romaji = spec.romaji ?? '';
     this.category = spec.category ?? '';
+    this.fandomTitle = spec.fandomTitle ?? '';
     this.image = spec.image;
     this.stats = spec.stats ?? {};
     this.waeknesses = spec.waeknesses ?? {};

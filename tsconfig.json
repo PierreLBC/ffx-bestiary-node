@@ -12,5 +12,6 @@
     "strict": true,
     "resolveJsonModule": true,
     "skipLibCheck": true
-  }
+  },
+  "include": ["./node_modules/types-mediawiki"]
 }

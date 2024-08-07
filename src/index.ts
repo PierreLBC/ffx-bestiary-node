@@ -1,13 +1,31 @@
-import { buildBestiaryTree, getMonsterContent } from './bestiary';
+import fs from 'fs';
+import { buildBestiaryTree, getMonsterContent, Monsters } from './bestiary';
 
 type MonsterByCategory = {
   [category: string]: string[];
 };
 
 (async () => {
+  const monstersSpec = fs.existsSync('bestiary.json') ? JSON.parse(fs.readFileSync('bestiary.json', 'utf8')) : [];
+  const monsters = new Monsters(monstersSpec);
   const bestiaryTree = await buildBestiaryTree();
-  // console.log(bestiaryTree.monstres[0]);
-  console.log(await getMonsterContent(bestiaryTree.monstres[1], 'monstres'));
+  // monsters.add(await getMonsterContent('Abeille tueuse/Final Fantasy X', 'monstres'));
+
+  try {
+    for (const category in bestiaryTree) {
+      for (const monster of bestiaryTree[category]) {
+        if (monsters.names.includes(monster)) {
+          continue;
+        }
+
+        console.log('monster ->', monster);
+        monsters.add(await getMonsterContent(monster, category));
+      }
+    }
+  } catch (e) {
+    fs.writeFileSync('bestiary.json', JSON.stringify(monsters.export(), null, 2));
+    throw e;
+  }
 })();
 
 console.log('\n\n');
