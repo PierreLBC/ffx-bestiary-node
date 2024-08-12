@@ -1,3 +1,4 @@
+import Monster, { Item } from '../classes/monster';
 import { getBestiaryFromFandom, getMonsterFromContent, getMonsterImage } from './api';
 
 type MonsterTitlesByCategory = {
@@ -27,6 +28,14 @@ const RESISTANCES_WEAKNESSES: Record<string, string> = {
   eau: 'water',
   glace: 'ice',
   sacre: 'holy',
+};
+
+const OBJECTS_KEYS: Record<string, string> = {
+  vol_courant: 'common_steal',
+  vol_rare: 'rare_steal',
+  objets_courant_obtenus: 'common_drop',
+  objets_rare_obtenus: 'rare_drop',
+  corruption: 'corruption',
 };
 
 const MONSTERS = {};
@@ -75,8 +84,13 @@ export async function buildBestiaryTree(): Promise<MonsterTitlesByCategory> {
 
 export async function getMonsterContent(monsterTitle: string, category: string): Promise<Monster> {
   const monsterText = await getMonsterFromContent(monsterTitle);
+  // console.log('monsterText ->', monsterText);
 
-  const mSpec: Partial<Monster> & Record<string, string | number | string[]> = { fandomTitle: monsterTitle, category };
+  const mSpec: Partial<Monster> & Record<string, string | number | string[] | Item[]> = {
+    fandomTitle: monsterTitle,
+    category,
+    source: monsterText,
+  };
   let mode = '';
   mSpec.stats = {};
   mSpec.waeknesses = {};
@@ -102,9 +116,21 @@ export async function getMonsterContent(monsterTitle: string, category: string):
         } else if (
           ['resistant_a', 'immunise_contre', 'competences_de_protections', 'competences_d_armes'].includes(key)
         ) {
-          mSpec[key] = value.split('/').map((s) => s.trim());
+          mSpec[key] = value === 'Rien' || value === '-' ? undefined : value.split('/').map((s) => s.trim());
+        } else if (key == 'localisation') {
+          const delimiters = /\||<br\s?\/?>|\//g;
+          mSpec[key] = Array.from(
+            new Set(
+              value
+                .split(delimiters)
+                .map((s) => s.trim())
+                .filter((s) => s !== 'Final Fantasy X')
+            )
+          );
+        } else if (OBJECTS_KEYS[key]) {
+          mSpec[key] = parseItem(value);
         } else {
-          mSpec[key] = value.trim();
+          mSpec[key] = value.trim().replaceAll(/<br\s?\/>/g, '');
         }
       }
     }
@@ -114,85 +140,24 @@ export async function getMonsterContent(monsterTitle: string, category: string):
   return new Monster(mSpec);
 }
 
-export class Monsters {
-  monsters: Monster[];
+function parseItem(text: string): Item[] {
+  const cleanedText = text.replace(/<br\s*\/?>/gi, ' ');
 
-  constructor(monsters: Partial<Monster>[] = []) {
-    this.monsters = monsters.map((monster) => (monster instanceof Monster ? monster : new Monster(monster)));
-  }
+  const regex = /(.+?)\sx(\d+)(?:\s*\((\d+)\s*gils\))?(?:\s+|$)/g;
+  const matches = Array.from(cleanedText.matchAll(regex));
 
-  add(monster: Monster): void {
-    if (this.names.includes(monster.fandomTitle)) {
-      console.log(`Monster ${monster.fandomTitle} already exists in the list`);
-      return;
+  return matches.map((match) => {
+    const item: Item = {
+      name: match[1].trim(),
+      quantity: parseInt(match[2], 10),
+    };
+
+    if (match[3]) {
+      item.cost = parseInt(match[3], 10);
     }
 
-    this.monsters.push(monster);
-  }
-
-  export() {
-    return this.monsters.map((monster) => monster.export());
-  }
-
-  get names() {
-    return this.monsters.map((monster) => monster.fandomTitle);
-  }
-}
-
-class Monster {
-  nom: string;
-  nomen: string;
-  nomjap: string;
-  romaji: string;
-  category: string;
-  image?: string;
-  stats?: Record<string, string | number>;
-  waeknesses?: Record<string, string>;
-  vol_courant: string;
-  vol_rare: string;
-  objets_courant_obtenus: string;
-  objets_rare_obtenus: string;
-  competences_d_armes: string;
-  competences_de_protections: string;
-  corruption: string;
-  attaques: string;
-  overdrive_kimahri_: string;
-  resistant_a: string;
-  immunise_contre: string;
-  fandomTitle: string;
-
-  constructor(spec: Partial<Monster>) {
-    this.nom = spec.nom ?? '';
-    this.nomen = spec.nomen ?? '';
-    this.nomjap = spec.nomjap ?? '';
-    this.romaji = spec.romaji ?? '';
-    this.category = spec.category ?? '';
-    this.fandomTitle = spec.fandomTitle ?? '';
-    this.image = spec.image;
-    this.stats = spec.stats ?? {};
-    this.waeknesses = spec.waeknesses ?? {};
-
-    this.vol_courant = spec.vol_courant ?? '';
-    this.vol_rare = spec.vol_rare ?? '';
-    this.objets_courant_obtenus = spec.objets_courant_obtenus ?? '';
-    this.objets_rare_obtenus = spec.objets_rare_obtenus ?? '';
-    this.competences_d_armes = spec.competences_d_armes ?? '';
-    this.competences_de_protections = spec.competences_de_protections ?? '';
-    this.corruption = spec.corruption ?? '';
-    this.attaques = spec.attaques ?? '';
-    this.overdrive_kimahri_ = spec.overdrive_kimahri_ ?? '';
-    this.resistant_a = spec.resistant_a ?? '';
-    this.immunise_contre = spec.immunise_contre ?? '';
-  }
-
-  toString() {
-    return `${this.nom} (${this.category})`;
-  }
-
-  export() {
-    // Export in JSON
-    return JSON.parse(JSON.stringify(this));
-  }
+    return item;
+  });
 }
 
 function normalizeText(str: string): string {

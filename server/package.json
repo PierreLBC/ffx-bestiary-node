@@ -1,10 +1,12 @@
 {
-  "name": "ffx-bestiary",
+  "name": "ffx-bestiary-server",
   "version": "0.0.1",
   "description": "FFX Bestiary",
   "main": "index.ts",
   "scripts": {
-    "test": "npm run test"
+    "dev": "npx nodemon --watch '*.ts' --exec 'NODE_ENV=development node -r ts-node/register --env-file=.env.dev' server.ts",
+    "prod": "npx ts-node server.ts",
+    "compile": "npx tsc --outDir dist"
   },
   "repository": {
     "type": "git",
@@ -21,13 +23,16 @@
   },
   "homepage": "https://github.com/PierreLBC/ffx-bestiary-node#readme",
   "devDependencies": {
-    "@types/node": "^22.0.0",
+    "@types/node": "^22.1.0",
     "ts-node": "^10.9.2",
     "ts-node-dev": "^2.0.0",
     "typescript": "^5.5.4"
   },
   "dependencies": {
-    "mediawiki": "^0.0.14",
-    "types-mediawiki": "^1.8.0"
+    "@types/express": "^4.17.21",
+    "@types/morgan": "^1.9.9",
+    "express": "^4.19.2",
+    "morgan": "^1.10.0",
+    "winston": "^3.14.0"
   }
 }

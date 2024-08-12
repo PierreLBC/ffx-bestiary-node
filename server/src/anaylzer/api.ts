@@ -1,6 +1,3 @@
-import * as mediawiki from 'mediawiki';
-mediawiki.Bot();
-
 const FFX_FANDOM_API_URL = 'https://finalfantasyx.fandom.com/fr/api.php';
 const FF_FANDOM_API_URL = 'https://finalfantasy.fandom.com/fr/api.php';
 
@@ -26,13 +23,17 @@ export async function getBestiaryFromFandom(): Promise<String> {
   return query.pages[keys[0]].revisions[0]['*'];
 }
 
-export async function getMonsterFromContent(monsterTitle: string): Promise<String> {
+export async function getMonsterFromContent(monsterTitle: string): Promise<string> {
   const { query } = await fetchFandom('revisions', monsterTitle, { rvprop: 'content' });
   const keys = Object.keys(query.pages);
+  if (keys[0] === '-1') {
+    return '{}';
+  }
+
   const firstRev = query.pages[keys[0]].revisions[0];
 
   try {
-    if (firstRev) {
+    if (firstRev && firstRev['*'] && !firstRev['*'].includes('Homonymie')) {
       return firstRev['*'];
     } else {
       const { query } = await fetchFandom('revisions', monsterTitle + '/Final Fantasy X', { rvprop: 'content' });
@@ -57,7 +58,9 @@ export async function getMonsterImage(monsterTitle: string): Promise<string> {
       return query.pages[keys[0]].thumbnail.source;
     }
   } catch (e) {
-    throw new Error(`No image found for '${monsterTitle}'`);
+    // throw new Error(`No image found for '${monsterTitle}'`);
+    console.log('no image found ->');
+    return '';
   }
 }
 
@@ -70,7 +73,7 @@ async function fetchFandom(prop: string, titles: string, additionnalParams: Obje
   };
 
   const urlWithParams = FF_FANDOM_API_URL + '?' + new URLSearchParams(params);
-  console.log('urlWithParams ->', urlWithParams);
+  // console.log('urlWithParams ->', urlWithParams);
   const response = await fetch(urlWithParams);
   return response.json();
 }

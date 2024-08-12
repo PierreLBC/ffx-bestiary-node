@@ -3,14 +3,14 @@
     "target": "es2023",
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
-    "module": "commonjs",
-    "rootDir": "./src",
+    "module": "ESNext",
+    "rootDir": "server/src",
     "outDir": "./dist",
     "removeComments": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "strict": true,
-    "resolveJsonModule": true,
+    "lib": ["ESNext", "dom"],
     "skipLibCheck": true
   },
   "include": ["./node_modules/types-mediawiki"]
