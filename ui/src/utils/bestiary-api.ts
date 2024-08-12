@@ -1,8 +1,8 @@
-import { Monster, Bestiary } from 'ffx-bestiary-server'
+// import BestiaryC from 'ffx-bestiary-server'
 import { get } from './api'
 
-export async function getKids(): Promise<Monster[]> {
-  const response = await get('/kids/list')
+export async function getLocations(): Promise<string[]> {
+  const response = await get('/bestiary/locations')
 
   if (response.ok) {
     const monsters = await response.json()
