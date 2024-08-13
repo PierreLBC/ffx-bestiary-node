@@ -20,21 +20,21 @@ export async function buildBestiary(fromZero: boolean): Promise<Bestiary> {
   // console.log(await getMonsterContent('Bicorne', 'monstres'));
   // console.log(await getMonsterContent('Vouivre', 'monstres'));
   // console.log(await getMonsterContent('Geosgaeno', 'monstres'));
-  // console.log(await getMonsterContent('Achelus', 'monstres'));
+  console.log(await getMonsterContent('Piranha', 'monstres'));
 
-  for (const category in bestiaryTree) {
-    for (const monster of bestiaryTree[category]) {
-      if (bestiaryCls.names.includes(monster)) {
-        continue;
-      }
+  // for (const category in bestiaryTree) {
+  //   for (const monster of bestiaryTree[category]) {
+  //     if (bestiaryCls.names.includes(monster)) {
+  //       continue;
+  //     }
 
-      const m = await getMonsterContent(monster, category);
-      console.log('monster ->', monster, m.toApi());
-      bestiaryCls.add(m);
-    }
-  }
+  //     const m = await getMonsterContent(monster, category);
+  //     console.log('monster ->', monster, m.toApi());
+  //     bestiaryCls.add(m);
+  //   }
+  // }
 
-  fs.writeFileSync(fileName, JSON.stringify(bestiaryCls.export(), null, 2));
+  // fs.writeFileSync(fileName, JSON.stringify(bestiaryCls.export(), null, 2));
   return bestiaryCls;
 }
 

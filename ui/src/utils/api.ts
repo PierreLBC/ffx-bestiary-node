@@ -11,6 +11,7 @@ export async function get(requestedEndpoint: string, payload?: Record<string, st
 export async function post(requestEndpoint: string, payload: any): Promise<Response> {
   const url = buildUrl(requestEndpoint)
 
+  console.log('url ->', url)
   return fetch(url, {
     method: 'POST',
     headers: getHeaders(),

@@ -23,7 +23,7 @@ export async function getBestiaryFromFandom(): Promise<String> {
   return query.pages[keys[0]].revisions[0]['*'];
 }
 
-export async function getMonsterFromContent(monsterTitle: string): Promise<string> {
+export async function getMonsterFromContent(monsterTitle: string): Promise<{ text: string; title: string }> {
   const { query } = await fetchFandom('revisions', monsterTitle, { rvprop: 'content' });
   const keys = Object.keys(query.pages);
   if (keys[0] === '-1') {
@@ -34,11 +34,11 @@ export async function getMonsterFromContent(monsterTitle: string): Promise<strin
 
   try {
     if (firstRev && firstRev['*'] && !firstRev['*'].includes('Homonymie')) {
-      return firstRev['*'];
+      return { text: firstRev['*'], title: monsterTitle };
     } else {
       const { query } = await fetchFandom('revisions', monsterTitle + '/Final Fantasy X', { rvprop: 'content' });
       const keys = Object.keys(query.pages);
-      return query.pages[keys[0]].revisions[0]['*'];
+      return { text: query.pages[keys[0]].revisions[0]['*'], title: monsterTitle + '/Final Fantasy X' };
     }
   } catch (e) {
     throw new Error(`No image found for '${monsterTitle}'`);

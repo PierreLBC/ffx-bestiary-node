@@ -4,10 +4,13 @@ import morgan from 'morgan';
 import apiRoutes from './src/api';
 
 import { createLogger } from './src/utils/logger';
+import { enableCorsMiddleware } from './src/utils/cors';
 const logger = createLogger();
 
 const app = express();
 const port = 3000;
+
+app.all('*', enableCorsMiddleware);
 
 app.use(morgan('dev'));
 app.use(express.json());

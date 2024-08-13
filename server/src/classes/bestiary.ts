@@ -4,7 +4,6 @@ export default class Bestiary {
   monsters: Monster[];
 
   constructor(monsters: Partial<Monster>[] = []) {
-    console.log('monsters[0] :>> ', monsters[0]);
     this.monsters = monsters.map((monster) => (monster instanceof Monster ? monster : new Monster(monster)));
   }
 

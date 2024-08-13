@@ -83,11 +83,11 @@ export async function buildBestiaryTree(): Promise<MonsterTitlesByCategory> {
 }
 
 export async function getMonsterContent(monsterTitle: string, category: string): Promise<Monster> {
-  const monsterText = await getMonsterFromContent(monsterTitle);
+  const { text: monsterText, title } = await getMonsterFromContent(monsterTitle);
   // console.log('monsterText ->', monsterText);
 
   const mSpec: Partial<Monster> & Record<string, string | number | string[] | Item[]> = {
-    fandomTitle: monsterTitle,
+    fandomTitle: title,
     category,
     source: monsterText,
   };
@@ -109,6 +109,9 @@ export async function getMonsterContent(monsterTitle: string, category: string):
       if (key && value) {
         key = normalizeText(key);
         value = value.replaceAll('[[', '').replaceAll(']]', '').replaceAll(' <br/>', '').trim();
+
+        console.log('key, value ->', key, value);
+
         if (STATS_KEYS[key]) {
           mSpec.stats[key] = parseInt(value.replaceAll(' ', ''), 10);
         } else if (RESISTANCES_WEAKNESSES[key]) {
