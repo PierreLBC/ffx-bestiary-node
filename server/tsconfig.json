@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "lib": ["es2021", "dom"]
+  },
+  "baseUrl": "./",
+  "path": {
+    "@collections/*": ["collections/*"],
+    "@utils/*": ["utils/*"]
+  },
+  "include": ["src"]
+}
